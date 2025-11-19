@@ -1,5 +1,6 @@
 """JavaScript rendering handler using Playwright"""
 import asyncio
+import re
 import threading
 import os
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
@@ -28,6 +29,7 @@ class JavaScriptRenderer:
 
             remote_url = urlparse(os.getenv("REMOTE_BROWSER")).geturl()
             if remote_url:
+                remote_url = re.sub(r"\\","",remote_url)
                 print(f"Connecting to {remote_url}")
                 self.browser = await self.playwright.chromium.connect_over_cdp(
                     remote_url
