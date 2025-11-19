@@ -26,7 +26,7 @@ class JavaScriptRenderer:
             browser_type = self.config.get('js_browser', 'chromium').lower()
             headless = self.config.get('js_headless', True)
 
-            remote_url = os.getenv("REMOTE_BROWSER")
+            remote_url = urlparse(os.getenv("REMOTE_BROWSER")).geturl()
             if remote_url:
                 print(f"Connecting to {remote_url}")
                 self.browser = await self.playwright.chromium.connect_over_cdp(
