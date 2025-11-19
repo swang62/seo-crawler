@@ -1,6 +1,7 @@
 """JavaScript rendering handler using Playwright"""
 import asyncio
 import threading
+import os
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 from urllib.parse import urlparse
 
@@ -25,6 +26,12 @@ class JavaScriptRenderer:
             browser_type = self.config.get('js_browser', 'chromium').lower()
             headless = self.config.get('js_headless', True)
 
+            remote_url = os.getenv("REMOTE_BROWSER")
+            if remote_url:
+                self.browser = await self.playwright.chromium.connect_over_cdp(
+                    remote_url
+                )
+                
             if browser_type == 'firefox':
                 self.browser = await self.playwright.firefox.launch(headless=headless)
             elif browser_type == 'webkit':

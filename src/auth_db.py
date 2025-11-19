@@ -9,7 +9,7 @@ from datetime import datetime
 from contextlib import contextmanager
 
 # Database file location
-DB_FILE = 'users.db'
+DB_FILE = "./data/users.db"
 
 @contextmanager
 def get_db():

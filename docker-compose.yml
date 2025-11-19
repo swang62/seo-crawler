@@ -1,10 +1,19 @@
 services:
   seo-crawler:
     build: .
-    expose:
-      - 5000
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-super_secret_key}
+      - REMOTE_BROWSER=${REMOTE_BROWSER}
+    ports:
+      - 5000:5000
     volumes:
       - seo-data:/app/data
     restart: unless-stopped
+    healthcheck:
+      test: curl -f http://localhost:5000/health
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
 volumes:
   seo-data:

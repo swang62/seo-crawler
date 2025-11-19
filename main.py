@@ -1,3 +1,4 @@
+import os
 import threading
 import time
 import csv
@@ -5,35 +6,19 @@ import json
 import xml.etree.ElementTree as ET
 import uuid
 import webbrowser
-import argparse
 from io import StringIO
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from functools import wraps
 from src.crawler import WebCrawler
 from src.settings_manager import SettingsManager
-from src.auth_db import init_db, create_user, authenticate_user, get_user_by_id, log_guest_crawl, get_guest_crawls_last_24h
-
-# Parse command line arguments
-parser = argparse.ArgumentParser(description='LibreCrawl - SEO Spider Tool')
-parser.add_argument('--local', '-l', action='store_true',
-                    help='Run in local mode (all users get admin tier, no rate limits)')
-args = parser.parse_args()
-
-LOCAL_MODE = args.local
+from src.auth_db import init_db, create_user, authenticate_user, log_guest_crawl, get_guest_crawls_last_24h
 
 app = Flask(__name__, template_folder='web/templates', static_folder='web/static')
-app.secret_key = 'librecrawl-secret-key-change-in-production'  # TODO: Use environment variable in production
+app.secret_key = os.getenv('SECRET_KEY', 'super-secret-key')
 
 # Initialize database on startup
 init_db()
-
-if LOCAL_MODE:
-    print("=" * 60)
-    print("LOCAL MODE ENABLED")
-    print("All users will have admin tier access")
-    print("No rate limits or tier restrictions")
-    print("=" * 60)
 
 def get_client_ip():
     """Get the real client IP address, checking Cloudflare headers first"""
@@ -355,23 +340,20 @@ def register():
 
     success, message = create_user(username, email, password)
 
-    # In local mode, auto-verify and set to admin tier
-    if success and LOCAL_MODE:
+    # Always register first user as admin
+    if success:
         try:
-            from src.auth_db import verify_user, set_user_tier
-            # Get the user that was just created
-            import sqlite3
-            conn = sqlite3.connect('users.db')
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute('SELECT id FROM users WHERE username = ?', (username,))
-            user = cursor.fetchone()
-            conn.close()
+            from src.auth_db import verify_user, set_user_tier, get_db
+            with get_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT id FROM users")
+                users = cursor.fetchall()
+                if len(users) == 1:
+                    user = users[0]
+                    verify_user(user["id"])
+                    set_user_tier(user["id"], "admin")
+                    message = "Account created and verified as admin."
 
-            if user:
-                verify_user(user['id'])
-                set_user_tier(user['id'], 'admin')
-                message = 'Account created and verified! You have admin access in local mode.'
         except Exception as e:
             print(f"Error during local mode auto-verification: {e}")
             # Don't fail the registration, just log the error
@@ -387,11 +369,11 @@ def login():
 
     success, message, user_data = authenticate_user(username, password)
 
-    if success:
+    if success and user_data:
         session['user_id'] = user_data['id']
         session['username'] = user_data['username']
         # In local mode, always give admin tier
-        session['tier'] = 'admin' if LOCAL_MODE else user_data['tier']
+        session['tier'] = user_data['tier']
         session.permanent = True  # Remember login
 
     return jsonify({'success': success, 'message': message})
@@ -403,7 +385,7 @@ def guest_login():
     # In local mode, guests also get admin tier
     session['user_id'] = None
     session['username'] = 'Guest'
-    session['tier'] = 'admin' if LOCAL_MODE else 'guest'
+    session['tier'] = 'guest'
     session.permanent = False  # Don't persist guest sessions
 
     return jsonify({'success': True, 'message': 'Logged in as guest'})
@@ -470,7 +452,7 @@ def start_crawl():
     tier = session.get('tier', 'guest')
 
     # Check guest limits (IP-based) - skip in local mode
-    if tier == 'guest' and not LOCAL_MODE:
+    if tier == 'guest':
         client_ip = get_client_ip()
         crawls_from_ip = get_guest_crawls_last_24h(client_ip)
 
