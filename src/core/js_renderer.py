@@ -28,6 +28,7 @@ class JavaScriptRenderer:
 
             remote_url = os.getenv("REMOTE_BROWSER")
             if remote_url:
+                print(f"Connecting to {remote_url}")
                 self.browser = await self.playwright.chromium.connect_over_cdp(
                     remote_url
                 )
