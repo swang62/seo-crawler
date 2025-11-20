@@ -241,7 +241,7 @@ class IssueDetector:
         if not result.get('json_ld') and not result.get('schema_org'):
             issues.append({
                 'url': url,
-                'type': 'error',
+                'type': 'info',
                 'category': 'Structured Data',
                 'issue': 'No Structured Data',
                 'details': 'Page has no JSON-LD or Schema.org markup'
@@ -251,9 +251,10 @@ class IssueDetector:
         """Check for performance issues"""
         url = result.get('url', '')
         response_time = result.get('response_time', 0)
+        js_rendered = bool(result.get('javascript_rendered', False))
         page_size = result.get('size', 0)
 
-        if response_time > 3000:
+        if not js_rendered and response_time > 3000:
             issues.append({
                 'url': url,
                 'type': 'error',
@@ -261,7 +262,7 @@ class IssueDetector:
                 'issue': 'Slow Response Time',
                 'details': f'Page took {response_time}ms to respond (recommended: <3000ms)'
             })
-        elif response_time > 1000:
+        elif not js_rendered and response_time > 1000:
             issues.append({
                 'url': url,
                 'type': 'warning',
