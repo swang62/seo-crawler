@@ -3,3 +3,4 @@
 *.pyc
 .claude/settings.local.json
 .env
+users.db
