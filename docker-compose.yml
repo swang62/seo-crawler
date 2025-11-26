@@ -1,6 +1,7 @@
 services:
   seo-crawler:
     build: .
+    container_name: seo-crawler
     environment:
       - SECRET_KEY=${SECRET_KEY:-super_secret_key}
       - REMOTE_BROWSER=${REMOTE_BROWSER:-}
@@ -9,6 +10,7 @@ services:
     volumes:
       - ./data:/app/data
     restart: unless-stopped
+    shm_size: 2gb
     healthcheck:
       test: curl -f http://localhost:5000/health
       interval: 30s
