@@ -5,6 +5,8 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY:-super_secret_key}
       - REMOTE_BROWSER=${REMOTE_BROWSER:-}
+      - LOCAL_MODE=${LOCAL_MODE:-True}
+      - REGISTRATION_DISABLED=${REGISTRATION_DISABLED:-True}
     ports:
       - 5000:5000
     volumes:
