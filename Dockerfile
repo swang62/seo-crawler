@@ -46,5 +46,7 @@ COPY --chown=librecrawl:librecrawl . .
 
 # Expose Flask port
 EXPOSE 5000
+ENV FLASK_APP=main.py
 
-CMD ["gunicorn", "-c", "gunicorn.py", "main:app"]
+# Run the application
+CMD ["python", "main.py"]

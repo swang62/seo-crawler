@@ -8,6 +8,5 @@ playwright
 nest-asyncio==1.5.8
 bcrypt==4.1.2
 psutil
-gunicorn
 markdown
 python-dotenv

@@ -3,28 +3,9 @@ Crawl data persistence module
 Handles database operations for storing and retrieving crawl data
 Enables crash recovery and historical crawl access
 """
-import sqlite3
 import json
-import time
-from datetime import datetime
-from contextlib import contextmanager
 
-# Database file location (same as auth database)
-DB_FILE = 'users.db'
-
-@contextmanager
-def get_db():
-    """Context manager for database connections"""
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row  # Return rows as dictionaries
-    try:
-        yield conn
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-        raise e
-    finally:
-        conn.close()
+from src.auth_db import DB_FILE, get_db
 
 def init_crawl_tables():
     """Initialize crawl persistence tables"""

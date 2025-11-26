@@ -4,7 +4,6 @@ Handles user registration, login, and verification
 """
 import sqlite3
 import bcrypt
-import os
 import secrets
 from datetime import datetime, timedelta
 from contextlib import contextmanager
