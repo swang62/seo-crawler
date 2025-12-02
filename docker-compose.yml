@@ -13,8 +13,10 @@ services:
       - ./data:/app/data
     restart: unless-stopped
     shm_size: 2gb
+    labels:
+      - wud.watch=false
     healthcheck:
-      test: curl -f http://localhost:5000/health
+      test: curl -f http://localhost:5000/health || exit 1
       interval: 30s
       timeout: 3s
       retries: 3

@@ -476,6 +476,9 @@ def generate_issues_json_export(issues):
         indent=2,
     )
 
+@app.route("/health")
+def health_check():
+    return jsonify({"success": "ok"}), 200
 
 @app.route("/login")
 def login_page():
