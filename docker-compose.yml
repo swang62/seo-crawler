@@ -7,17 +7,21 @@ services:
       - REMOTE_BROWSER=${REMOTE_BROWSER:-}
       - LOCAL_MODE=${LOCAL_MODE:-True}
       - REGISTRATION_DISABLED=${REGISTRATION_DISABLED:-True}
-    ports:
-      - 5000:5000
+    expose:
+      - 5000
+    networks:
+      - caddy
     volumes:
       - ./data:/app/data
     restart: unless-stopped
     shm_size: 2gb
-    labels:
-      - wud.watch=false
     healthcheck:
       test: curl -f http://localhost:5000/health || exit 1
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 10s
+
+networks:
+  caddy:
+    external: true
